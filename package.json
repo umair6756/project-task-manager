@@ -1,0 +1,17 @@
+{
+  "name": "flowforge",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "dev:api": "pnpm --filter @flowforge/api dev",
+    "build:api": "pnpm --filter @flowforge/api build",
+    "test:api": "pnpm --filter @flowforge/api test",
+    "test": "pnpm -r test"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
