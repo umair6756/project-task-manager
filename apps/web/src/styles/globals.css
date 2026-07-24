@@ -1,0 +1,111 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Dark-first theme: :root is dark, .light overrides. Accent is a single
+   CSS variable so it can be swapped from Settings (Phase 14) without
+   touching component code. */
+:root {
+  --background: 240 10% 6%;
+  --foreground: 0 0% 95%;
+  --card: 240 8% 9%;
+  --card-foreground: 0 0% 95%;
+  --border: 240 6% 18%;
+  --input: 240 6% 18%;
+  --ring: 258 90% 66%;
+  --primary: 258 90% 66%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 240 6% 14%;
+  --secondary-foreground: 0 0% 95%;
+  --muted: 240 6% 14%;
+  --muted-foreground: 240 5% 65%;
+  --accent: 240 6% 16%;
+  --accent-foreground: 0 0% 95%;
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 0 0% 100%;
+  --radius: 0.5rem;
+}
+
+.light {
+  --background: 0 0% 100%;
+  --foreground: 240 10% 10%;
+  --card: 0 0% 100%;
+  --card-foreground: 240 10% 10%;
+  --border: 240 6% 88%;
+  --input: 240 6% 88%;
+  --ring: 258 90% 56%;
+  --primary: 258 90% 56%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 240 6% 96%;
+  --secondary-foreground: 240 10% 10%;
+  --muted: 240 6% 96%;
+  --muted-foreground: 240 4% 40%;
+  --accent: 240 6% 94%;
+  --accent-foreground: 240 10% 10%;
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 0 0% 100%;
+}
+
+* {
+  @apply border-border;
+}
+
+body {
+  @apply bg-background text-foreground antialiased;
+}
+
+/* FullCalendar ships light-mode-only inline styles; override the CSS
+   variables it reads so the calendar matches the app's dark-first theme. */
+.calendar-dark {
+  --fc-border-color: hsl(var(--border));
+  --fc-page-bg-color: transparent;
+  --fc-neutral-bg-color: hsl(var(--secondary));
+  --fc-list-event-hover-bg-color: hsl(var(--accent));
+  --fc-today-bg-color: hsl(var(--accent) / 0.4);
+  --fc-event-bg-color: hsl(var(--primary));
+  --fc-event-border-color: hsl(var(--primary));
+  color: hsl(var(--foreground));
+}
+.calendar-dark .fc-button {
+  background: hsl(var(--secondary));
+  border-color: hsl(var(--border));
+  color: hsl(var(--foreground));
+}
+.calendar-dark .fc-button:hover {
+  background: hsl(var(--accent));
+}
+.calendar-dark .fc-button-active {
+  background: hsl(var(--primary)) !important;
+}
+
+/* Minimal markdown-preview styling (no @tailwindcss/typography dependency). */
+.note-preview h1 { @apply mb-3 mt-4 text-2xl font-semibold; }
+.note-preview h2 { @apply mb-2 mt-4 text-xl font-semibold; }
+.note-preview h3 { @apply mb-2 mt-3 text-lg font-semibold; }
+.note-preview p { @apply mb-3 leading-relaxed; }
+.note-preview ul { @apply mb-3 list-disc space-y-1 pl-5; }
+.note-preview ol { @apply mb-3 list-decimal space-y-1 pl-5; }
+.note-preview a { @apply text-primary underline; }
+.note-preview code { @apply rounded bg-secondary px-1 py-0.5 font-mono text-xs; }
+.note-preview pre { @apply mb-3 overflow-x-auto rounded-md bg-secondary p-3; }
+.note-preview pre code { @apply bg-transparent p-0; }
+.note-preview blockquote { @apply mb-3 border-l-2 border-border pl-3 text-muted-foreground; }
+.note-preview input[type="checkbox"] { @apply mr-1.5; }
+
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+.skeleton {
+  @apply rounded-md bg-secondary;
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
