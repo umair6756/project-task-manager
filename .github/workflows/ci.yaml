@@ -13,14 +13,15 @@ jobs:
 
     services:
       mongo:
-        image: mongo
+        image: mongo:7.0
         ports:
           - 27017:27017
         options: >-
-          --health-cmd "mongosh --eval 'db.ping()'"
+          --health-cmd "mongosh --eval 'db.ping()' --quiet"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+          --health-start-period 10s
 
     steps:
       - name: Checkout repository
@@ -40,7 +41,7 @@ jobs:
 
       - name: Run API tests
         env:
-          MONGO_URI: mongodb://localhost:27017/flowforge_test
+          MONGO_URI: mongodb://127.0.0.1:27017/flowforge_test
           JWT_ACCESS_SECRET: test-access-secret
           JWT_REFRESH_SECRET: test-refresh-secret
         run: pnpm test:api
@@ -83,7 +84,7 @@ jobs:
           images: ${{ secrets.DOCKERHUB_USERNAME }}/flowforge-api
           tags: |
             type=sha,format=short
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/master' }}
 
       - name: Extract metadata for Web
         id: meta-web
@@ -92,7 +93,7 @@ jobs:
           images: ${{ secrets.DOCKERHUB_USERNAME }}/flowforge-web
           tags: |
             type=sha,format=short
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/master' }}
 
       # --- API Build & Trivy Scan ---
       - name: Build local API image
