@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { DndContext, PointerSensor, closestCenter, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { QuickAddBar } from "./QuickAddBar";
@@ -87,27 +88,29 @@ export function TaskListView() {
         const group = tasks.filter((t) => t.status === status).sort((a, b) => a.sortOrder - b.sortOrder);
         if (group.length === 0) return null;
         return (
-          <div key={status}>
+          <motion.div key={status} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2 }}>
             <h3 className="mb-1 px-2 text-xs font-medium uppercase text-muted-foreground">
               {label} ({group.length})
             </h3>
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd(status, group)}>
               <SortableContext items={group.map((t) => t.id)} strategy={verticalListSortingStrategy}>
-                <div className="rounded-lg border border-border">
-                  {group.map((task) => (
-                    <SortableTaskRow
-                      key={task.id}
-                      task={task}
-                      onComplete={() => void handleComplete(task)}
-                      onOpen={() => setOpenTaskId(task.id)}
-                      selected={selected.has(task.id)}
-                      onToggleSelect={() => toggleSelect(task.id)}
-                    />
-                  ))}
+                <div className="divide-y divide-border/60 rounded-lg border border-border shadow-sm">
+                  <AnimatePresence initial={false}>
+                    {group.map((task) => (
+                      <SortableTaskRow
+                        key={task.id}
+                        task={task}
+                        onComplete={() => void handleComplete(task)}
+                        onOpen={() => setOpenTaskId(task.id)}
+                        selected={selected.has(task.id)}
+                        onToggleSelect={() => toggleSelect(task.id)}
+                      />
+                    ))}
+                  </AnimatePresence>
                 </div>
               </SortableContext>
             </DndContext>
-          </div>
+          </motion.div>
         );
       })}
 

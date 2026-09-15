@@ -20,7 +20,7 @@ export function useTasks(params: { status?: TaskStatus[]; projectId?: string } =
 export function useCreateTask() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (input: { title: string; projectId?: string | null; priority?: Task["priority"]; dueAt?: string | null }) =>
+    mutationFn: (input: { title: string; projectId?: string | null; priority?: Task["priority"]; dueAt?: string | null; status?: TaskStatus }) =>
       api.post<{ task: Task }>("/tasks", input),
     onSuccess: () => void qc.invalidateQueries({ queryKey: tasksKey }),
   });

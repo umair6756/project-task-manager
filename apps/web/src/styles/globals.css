@@ -52,6 +52,28 @@
 
 body {
   @apply bg-background text-foreground antialiased;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+/* Slim, theme-aware scrollbar used everywhere (Firefox + WebKit). */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--border)) transparent;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 9999px;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.5);
+}
+
+.glass-card {
+  @apply rounded-lg border border-border bg-card/60 backdrop-blur-sm;
 }
 
 /* FullCalendar ships light-mode-only inline styles; override the CSS

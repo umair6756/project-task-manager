@@ -8,5 +8,44 @@ services:
     volumes:
       - flowforge-mongo-data:/data/db
 
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: flowforge-api
+    restart: unless-stopped
+    depends_on:
+      - mongo
+    ports:
+      - "4000:4000"
+    environment:
+      NODE_ENV: development
+      PORT: 4000
+      CLIENT_ORIGIN: http://localhost:8080
+      MONGO_URI: mongodb://mongo:27017/flowforge
+      JWT_ACCESS_SECRET: change-me-access-secret
+      JWT_REFRESH_SECRET: change-me-refresh-secret
+      JWT_ACCESS_TTL: 15m
+      JWT_REFRESH_TTL: 7d
+      BCRYPT_ROUNDS: 12
+      EMAIL_FROM: "FlowForge <no-reply@flowforge.local>"
+      UPLOAD_DIR: ./uploads
+      RATE_LIMIT_WINDOW_MS: 900000
+      RATE_LIMIT_MAX: 300
+    volumes:
+      - flowforge-api-uploads:/app/apps/api/uploads
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    container_name: flowforge-web
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "8080:80"
+
 volumes:
   flowforge-mongo-data:
+  flowforge-api-uploads:

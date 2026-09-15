@@ -1,8 +1,12 @@
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
+import { useRouterState } from "@tanstack/react-router";
+import { AnimatePresence, motion } from "framer-motion";
 import { Sidebar } from "./Sidebar";
 import { Topbar } from "./Topbar";
+import { MobileBottomNav, MobileDrawer } from "./MobileNav";
+import { TopProgressBar } from "./TopProgressBar";
 import { CommandPalette } from "@/features/commandPalette/CommandPalette";
 import { ShortcutsModal } from "@/features/shortcuts/ShortcutsModal";
 import { useAuthStore } from "@/stores/authStore";
@@ -64,13 +68,25 @@ export function AppShell({ children }: { children: ReactNode }) {
   useNotificationSocket();
   useAppliedAccent();
 
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+
   return (
     <div className="flex h-screen overflow-hidden bg-background">
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col">
-        <Topbar />
-        <main className="flex-1 overflow-y-auto p-6">{children}</main>
+        <Topbar onOpenMobileNav={() => setMobileNavOpen(true)} />
+        <TopProgressBar />
+        <main className="flex-1 overflow-y-auto p-4 pb-20 sm:p-6 md:pb-6">
+          <AnimatePresence mode="wait">
+            <motion.div key={pathname} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.18 }}>
+              {children}
+            </motion.div>
+          </AnimatePresence>
+        </main>
       </div>
+      <MobileBottomNav onMore={() => setMobileNavOpen(true)} />
+      <MobileDrawer open={mobileNavOpen} onClose={() => setMobileNavOpen(false)} />
       <CommandPalette />
       <ShortcutsModal />
       <PwaUpdatePrompt />

@@ -7,3 +7,4 @@ build/
 coverage/
 uploads/
 .DS_Store
+.claude

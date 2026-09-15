@@ -3,16 +3,19 @@ import type { ReactNode } from "react";
 import { DndContext, PointerSensor, closestCenter, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
 import { SortableContext, useSortable, rectSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Eye, EyeOff, GripVertical, Pencil } from "lucide-react";
+import { motion } from "framer-motion";
+import { Eye, EyeOff, Flame, GripVertical, Pencil, Sparkles, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/cn";
 import { useTodayView } from "@/features/tasks/useViews";
 import { useGamificationMe } from "@/features/gamification/useGamification";
+import { useHabits } from "@/features/habits/useHabits";
 import { MitPicker } from "@/features/planning/MitPicker";
 import { ShutdownFlow } from "@/features/planning/ShutdownFlow";
 import { HabitsTodayStrip } from "@/features/habits/HabitsTodayStrip";
 import { GoalsGlance } from "@/features/goals/GoalsGlance";
+import { useAuthStore } from "@/stores/authStore";
 import { useDashboardLayout, type WidgetId } from "./useDashboardLayout";
 
 function TodayWidget() {
@@ -69,7 +72,7 @@ function WidgetCard({ id, editMode, hidden, onToggleHidden }: { id: WidgetId; ed
     <div
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : hidden ? 0.4 : 1 }}
-      className="rounded-lg border border-border bg-card p-4"
+      className="glass-card p-4 shadow-sm transition-shadow hover:shadow-md"
     >
       <div className="mb-3 flex items-center justify-between">
         <h2 className="text-sm font-medium text-muted-foreground">{widget.title}</h2>
@@ -85,6 +88,61 @@ function WidgetCard({ id, editMode, hidden, onToggleHidden }: { id: WidgetId; ed
         )}
       </div>
       {!hidden && widget.render()}
+    </div>
+  );
+}
+
+function greeting() {
+  const h = new Date().getHours();
+  if (h < 5) return "Still up?";
+  if (h < 12) return "Good morning";
+  if (h < 18) return "Good afternoon";
+  return "Good evening";
+}
+
+function StatTile({ icon: Icon, label, value, gradient }: { icon: typeof Flame; label: string; value: string | number; gradient: string }) {
+  return (
+    <motion.div
+      whileHover={{ y: -2 }}
+      className={cn("glass-card flex items-center gap-3 p-3", "shadow-sm")}
+    >
+      <div className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br text-white", gradient)}>
+        <Icon className="h-4 w-4" />
+      </div>
+      <div className="min-w-0">
+        <p className="text-lg font-semibold leading-none">{value}</p>
+        <p className="truncate text-[11px] text-muted-foreground">{label}</p>
+      </div>
+    </motion.div>
+  );
+}
+
+function DashboardHeader() {
+  const user = useAuthStore((s) => s.user);
+  const { data: gam } = useGamificationMe();
+  const { data: today } = useTodayView();
+  const { data: habitsData } = useHabits();
+
+  const todayCount = today ? today.overdue.length + today.dueToday.length + today.startingToday.length : 0;
+  const bestStreak = Math.max(0, ...(habitsData?.habits.map((h) => h.currentStreak) ?? [0]));
+
+  return (
+    <div className="space-y-3">
+      <div>
+        <h1 className="text-2xl font-semibold tracking-tight">
+          {greeting()}
+          {user?.name ? `, ${user.name.split(" ")[0]}` : ""}
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          {new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" })}
+        </p>
+      </div>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <StatTile icon={Sparkles} label="Due today" value={todayCount} gradient="from-blue-500 to-cyan-400" />
+        <StatTile icon={Trophy} label={`Level ${gam?.levelInfo.level ?? 1}`} value={`${gam?.levelInfo.xpIntoLevel ?? 0} XP`} gradient="from-primary to-fuchsia-500" />
+        <StatTile icon={Flame} label="Best habit streak" value={`${bestStreak}d`} gradient="from-orange-500 to-amber-400" />
+        <StatTile icon={Trophy} label="Freeze tokens" value={gam?.freezeTokensAvailable ?? 0} gradient="from-emerald-500 to-teal-400" />
+      </div>
     </div>
   );
 }
@@ -107,23 +165,32 @@ export function DashboardPage() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
+      <DashboardHeader />
+
       <div className="flex items-center justify-end gap-2">
         <Button variant="secondary" size="sm" onClick={() => setShowShutdown(true)}>
           Shutdown ritual
         </Button>
-        <Button variant={editMode ? "default" : "ghost"} size="sm" onClick={() => setEditMode((v) => !v)}>
+        <Button variant={editMode ? "gradient" : "ghost"} size="sm" onClick={() => setEditMode((v) => !v)}>
           <Pencil className="mr-1 h-3.5 w-3.5" /> {editMode ? "Done" : "Edit layout"}
         </Button>
       </div>
 
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
         <SortableContext items={order} strategy={rectSortingStrategy}>
-          <div className={cn("grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3")}>
+          <motion.div
+            className={cn("grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3")}
+            initial="hidden"
+            animate="show"
+            variants={{ show: { transition: { staggerChildren: 0.05 } } }}
+          >
             {order.map((id) => (
-              <WidgetCard key={id} id={id} editMode={editMode} hidden={hidden.includes(id)} onToggleHidden={() => toggleHidden(id)} />
+              <motion.div key={id} variants={{ hidden: { opacity: 0, y: 8 }, show: { opacity: 1, y: 0 } }}>
+                <WidgetCard id={id} editMode={editMode} hidden={hidden.includes(id)} onToggleHidden={() => toggleHidden(id)} />
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </SortableContext>
       </DndContext>
 
