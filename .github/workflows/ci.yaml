@@ -17,7 +17,7 @@ jobs:
         ports:
           - 27017:27017
         options: >-
-          --health-cmd "mongosh --eval \"db.adminCommand('ping')\""
+          --health-cmd "mongosh --eval 'db.adminCommand(\"ping\")' --quiet"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -29,6 +29,8 @@ jobs:
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
+        with:
+          version: 9   # match this to your local `pnpm -v`, or better: set "packageManager" in package.json and remove this line
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -105,7 +107,7 @@ jobs:
           tags: flowforge-api:local
 
       - name: Scan API image with Trivy
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.29.0
         with:
           image-ref: 'flowforge-api:local'
           format: 'table'
@@ -134,7 +136,7 @@ jobs:
           tags: flowforge-web:local
 
       - name: Scan Web image with Trivy
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.29.0
         with:
           image-ref: 'flowforge-web:local'
           format: 'table'
