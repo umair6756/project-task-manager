@@ -1,14 +1,18 @@
-// WHAT: Spins up an in-memory MongoDB for the whole test run so Supertest
-// hits a real Mongoose-backed API without any external DB dependency.
-import { MongoMemoryServer } from "mongodb-memory-server";
+// WHAT: Connects to the shared MongoDB instance (provided via MONGO_URI —
+// a real mongo service container in CI, or a local/dev instance otherwise)
+// so Supertest hits a real Mongoose-backed API. Each test file gets its own
+// database name so parallel test files don't collide.
 import mongoose from "mongoose";
 import { beforeAll, afterAll, afterEach } from "vitest";
 
-let mongod: MongoMemoryServer;
+const baseUri = process.env.MONGO_URI ?? "mongodb://127.0.0.1:27017/flowforge_test";
+
+// Give this suite its own database on the shared instance so it can run
+// alongside other test files without stepping on their data.
+const uri = `${baseUri}_tasks`;
 
 beforeAll(async () => {
-  mongod = await MongoMemoryServer.create();
-  await mongoose.connect(mongod.getUri());
+  await mongoose.connect(uri);
 });
 
 afterEach(async () => {
@@ -17,6 +21,6 @@ afterEach(async () => {
 });
 
 afterAll(async () => {
+  await mongoose.connection.dropDatabase();
   await mongoose.disconnect();
-  await mongod.stop();
 });
