@@ -1,26 +1,21 @@
-// WHAT: Connects to the shared MongoDB instance (provided via MONGO_URI —
-// a real mongo service container in CI, or a local/dev instance otherwise)
-// so Supertest hits a real Mongoose-backed API. Each test file gets its own
-// database name so parallel test files don't collide.
+// WHAT: Cleans up MongoDB collections between tests in this suite.
+//
+// This file deliberately does NOT open or close a mongoose connection.
+// The app's bootstrap (wherever mongoose.connect(process.env.MONGO_URI) is
+// called on startup) owns the single shared connection for the whole test
+// run. An earlier version of this file called mongoose.connect() in
+// beforeAll and mongoose.disconnect() in afterAll — since mongoose's
+// default connection is a process-wide singleton, that hijacked the shared
+// connection mid-run and then tore it down while sibling test files running
+// in the same worker were still using it, causing widespread unrelated
+// failures (auth tokens missing, writes not visible, etc.).
+//
+// This file's only job is data isolation between tests: wipe every
+// collection after each test so one test's data can't leak into the next.
 import mongoose from "mongoose";
-import { beforeAll, afterAll, afterEach } from "vitest";
-
-const baseUri = process.env.MONGO_URI ?? "mongodb://127.0.0.1:27017/flowforge_test";
-
-// Give this suite its own database on the shared instance so it can run
-// alongside other test files without stepping on their data.
-const uri = `${baseUri}_tasks`;
-
-beforeAll(async () => {
-  await mongoose.connect(uri);
-});
+import { afterEach } from "vitest";
 
 afterEach(async () => {
   const collections = mongoose.connection.collections;
   await Promise.all(Object.values(collections).map((c) => c.deleteMany({})));
-});
-
-afterAll(async () => {
-  await mongoose.connection.dropDatabase();
-  await mongoose.disconnect();
 });
