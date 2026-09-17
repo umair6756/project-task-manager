@@ -49,8 +49,7 @@ jobs:
 
       - name: Pre-download MongoDB binary (avoids parallel-worker lock race)
         working-directory: apps/api
-        run: node -e "require('mongodb-memory-server-core').MongoMemoryServer.create().then(async m => { await m.stop(); })"
-
+        run: node -e "require('mongodb-memory-server').MongoMemoryServer.create().then(async m => { await m.stop(); })"
       - name: Run API tests
         env:
           MONGO_URI: mongodb://127.0.0.1:27017/flowforge_test
