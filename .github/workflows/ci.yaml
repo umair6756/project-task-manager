@@ -41,6 +41,16 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Cache MongoDB binaries
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/mongodb-binaries
+          key: ${{ runner.os }}-mongodb-binaries-mms-core-10.4.3-mongo-7.0.24
+
+      - name: Pre-download MongoDB binary (avoids parallel-worker lock race)
+        working-directory: apps/api
+        run: node -e "require('mongodb-memory-server-core').MongoMemoryServer.create().then(async m => { await m.stop(); })"
+
       - name: Run API tests
         env:
           MONGO_URI: mongodb://127.0.0.1:27017/flowforge_test
